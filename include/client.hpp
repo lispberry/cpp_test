@@ -1,0 +1,4 @@
+#ifndef CPP_TEST_CLIENT_HPP
+#define CPP_TEST_CLIENT_HPP
+
+#endif//CPP_TEST_CLIENT_HPP
