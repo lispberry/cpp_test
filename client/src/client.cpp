@@ -1,4 +1,3 @@
-#include <iostream>
 #include <fstream>
 #include <filesystem>
 #include <boost/asio.hpp>
@@ -6,14 +5,12 @@
 #include <boost/asio/ts/internet.hpp>
 #include <boost/log/trivial.hpp>
 #include <protocol.hpp>
+#include <client.hpp>
 
 using namespace boost;
 
-void usage() {
-    std::cout << "usage: client filename" << std::endl;
-}
-
-void readFileFromServer(const std::filesystem::path &path, uint16_t port = 7777) {
+namespace server {
+void readFileFromServer(const std::filesystem::path &path, uint16_t port) {
     std::ofstream out{path, std::ios::binary};
     asio::io_service service{};
 
@@ -41,13 +38,4 @@ void readFileFromServer(const std::filesystem::path &path, uint16_t port = 7777)
         BOOST_LOG_TRIVIAL(error) << ex.what();
     }
 }
-
-int main(int argc, const char **argv) {
-    if (argc < 2) {
-        usage();
-        return 0;
-    }
-    readFileFromServer(std::filesystem::current_path() / argv[1]);
-
-    return 0;
 }
