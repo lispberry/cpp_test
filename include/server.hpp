@@ -5,14 +5,11 @@
 #include <boost/asio/ts/buffer.hpp>
 #include <boost/asio/ts/internet.hpp>
 #include <string>
+#include <filesystem>
 
 namespace server {
 using namespace boost;
 using namespace boost::asio;
-
-struct FileHeader {
-     size_t size;
-};
 
 class FileServer {
 public:

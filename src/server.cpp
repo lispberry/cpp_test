@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <boost/log/trivial.hpp>
 #include <server.hpp>
+#include <protocol.hpp>
 
 namespace server {
 using namespace boost;
@@ -21,20 +22,23 @@ void FileServer::start(const std::filesystem::path &path) {
         try {
             auto socket = m_acceptor.accept();
             std::thread([path, socket = std::move(socket)]() mutable {
-                std::ifstream in{path};
+                std::ifstream in{path, std::ios::binary};
                 std::array<char, 8196> buffer{};
                 try {
                     FileHeader header{};
                     header.size = std::filesystem::file_size(path);
 
                     asio::write(socket, asio::buffer(&header, sizeof(header)));
-                    while (in.read(buffer.data(), buffer.size())) {
-                        asio::write(socket, asio::buffer(buffer));
+                    size_t bytesSent = 0;
+                    while (in.read(buffer.data(), buffer.size()) || in.gcount() > 0) {
+                        bytesSent += in.gcount();
+                        asio::write(socket, asio::buffer(buffer.data(), in.gcount()));
                     }
+                    BOOST_LOG_TRIVIAL(info) << "Bytes sent: " << bytesSent;
                 } catch (std::exception &ex) {
-                    socket.close();
-                    BOOST_LOG_TRIVIAL(info) << ex.what();
+                    BOOST_LOG_TRIVIAL(error) << ex.what();
                 }
+                socket.close();
             }).detach();
         } catch (std::exception &ex) {
             BOOST_LOG_TRIVIAL(info) << ex.what();
