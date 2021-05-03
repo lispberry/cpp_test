@@ -1,6 +1,7 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ts/buffer.hpp>
 #include <boost/asio/ts/internet.hpp>
+#include <boost/endian.hpp>
 #include <iostream>
 #include <fstream>
 #include <thread>
@@ -40,7 +41,7 @@ void FileServer::acceptConnection(const std::filesystem::path &path, ip::tcp::so
         std::array<char, 8196> buffer{};
         try {
             FileHeader header{};
-            header.size = std::filesystem::file_size(path);
+            header.size = endian::native_to_little(std::filesystem::file_size(path));
 
             asio::write(socket, asio::buffer(&header, sizeof(header)));
             size_t bytesSent = 0;

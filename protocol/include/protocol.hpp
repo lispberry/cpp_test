@@ -1,11 +1,12 @@
 #ifndef CPP_TEST_PROTOCOL_HPP
 #define CPP_TEST_PROTOCOL_HPP
 
-#include <cstddef>
+#include <cstdint>
 
 namespace server {
 struct FileHeader {
-    size_t size;
+    // Note: little-endian
+    int64_t size;
 };
 }
 

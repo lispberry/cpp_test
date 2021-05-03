@@ -6,6 +6,7 @@
 #include <boost/asio/ts/buffer.hpp>
 #include <boost/asio/ts/internet.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/endian.hpp>
 #include <protocol.hpp>
 #include <client.hpp>
 
@@ -37,7 +38,7 @@ void readFileFromServer(const std::filesystem::path &pathToSave, uint16_t port) 
             asio::read(socket, asio::buffer(&header, sizeof(header)));
 
             boost::system::error_code ec;
-            int64_t sz = header.size;
+            int64_t sz = endian::little_to_native(header.size);
             while (ec != asio::error::eof && sz >= 0) {
                 size_t bytesRead = asio::read(socket, asio::buffer(buffer), ec);
                 sz -= bytesRead;
