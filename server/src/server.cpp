@@ -41,7 +41,7 @@ void FileServer::handleTimeout() {
 void FileServer::acceptConnection(const std::filesystem::path &path, ip::tcp::socket socket) {
     asio::post(m_workers,[path, socket = std::move(socket)]() mutable {
         std::ifstream in{path, std::ios::binary};
-        std::array<char, 8196> buffer{};
+        std::array<char, MSG_BUFFER_SIZE> buffer{};
         try {
             FileHeader header{};
             header.size = endian::native_to_little(std::filesystem::file_size(path));

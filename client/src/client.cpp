@@ -33,7 +33,7 @@ void readFileFromServer(const std::filesystem::path &pathToSave, uint16_t port) 
     auto delay = runWithTime([&] {
         try {
             socket.connect(endpoint);
-            std::array<char, 8196> buffer{};
+            std::array<char, MSG_BUFFER_SIZE> buffer{};
             server::FileHeader header{};
             asio::read(socket, asio::buffer(&header, sizeof(header)));
 

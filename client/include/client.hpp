@@ -5,7 +5,7 @@
 #include <cstdint>
 
 namespace server {
-void readFileFromServer(const std::filesystem::path &pathToSave, uint16_t port = 7777);
+void readFileFromServer(const std::filesystem::path &pathToSave, uint16_t port);
 }
 
 #endif//CPP_TEST_CLIENT_HPP
