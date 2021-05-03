@@ -14,8 +14,11 @@ namespace server {
 using namespace boost;
 using namespace std::chrono_literals;
 
+const uint16_t THREAD_POOL_SIZE = std::thread::hardware_concurrency() * 2;
+
 FileServer::FileServer(uint16_t port)
-    : m_acceptor{m_service, ip::tcp::endpoint{ip::tcp::v4(), port}}
+    : m_acceptor{m_service, ip::tcp::endpoint{ip::tcp::v4(), port}},
+      m_workers{THREAD_POOL_SIZE}
     {}
 
 void FileServer::start(const std::filesystem::path &path) {
@@ -36,7 +39,7 @@ void FileServer::handleTimeout() {
 }
 
 void FileServer::acceptConnection(const std::filesystem::path &path, ip::tcp::socket socket) {
-    std::thread([path, socket = std::move(socket)]() mutable {
+    asio::post(m_workers,[path, socket = std::move(socket)]() mutable {
         std::ifstream in{path, std::ios::binary};
         std::array<char, 8196> buffer{};
         try {
@@ -54,7 +57,7 @@ void FileServer::acceptConnection(const std::filesystem::path &path, ip::tcp::so
             BOOST_LOG_TRIVIAL(error) << ex.what();
         }
         socket.close();
-    }).detach();
+    });
 
     m_acceptor.async_accept([path, this](auto ec, auto socket) {
         acceptConnection(path, std::move(socket));
@@ -63,19 +66,25 @@ void FileServer::acceptConnection(const std::filesystem::path &path, ip::tcp::so
 
 void FileServer::stop() {
     BOOST_LOG_TRIVIAL(info) << "Started shutting down";
-    m_exit_cond.store(true);
-    if (m_acceptor_thread.joinable()) {
-        m_acceptor_thread.join();
-    }
+    shutdown();
 }
 
 void FileServer::wait() {
     if (m_acceptor_thread.joinable()) {
         m_acceptor_thread.join();
     }
+    m_workers.join();
 }
 
 FileServer::~FileServer() {
-    stop();
+    shutdown();
+}
+
+void FileServer::shutdown(){
+    m_exit_cond.store(true);
+    if (m_acceptor_thread.joinable()) {
+        m_acceptor_thread.join();
+    }
+    m_workers.join();
 }
 }
