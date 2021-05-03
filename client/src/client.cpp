@@ -22,8 +22,8 @@ auto runWithTime(Func action) {
     return end - start;
 }
 
-void readFileFromServer(const std::filesystem::path &path, uint16_t port) {
-    std::ofstream out{path, std::ios::binary};
+void readFileFromServer(const std::filesystem::path &pathToSave, uint16_t port) {
+    std::ofstream out{pathToSave, std::ios::binary};
     asio::io_service service{};
 
     asio::ip::tcp::endpoint endpoint{asio::ip::make_address("127.0.0.1"), port};
@@ -46,13 +46,18 @@ void readFileFromServer(const std::filesystem::path &path, uint16_t port) {
                 }
                 out.write(buffer.data(), bytesRead);
             }
+            if (sz > 0) {
+                std::cout << "Couldn't download the whole file" << std::endl;
+            }
         } catch (system::system_error &ex) {
+            std::cout << "Couldn't download the file" << std::endl;
             BOOST_LOG_TRIVIAL(error) << ex.what();
         }
     });
 
     std::cout << "Transmission delay is: "
               << std::chrono::duration_cast<std::chrono::milliseconds>(delay).count()
-              << "ms";
+              << "ms"
+              << std::endl;
 }
 }

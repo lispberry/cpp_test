@@ -19,6 +19,7 @@ FileServer::FileServer(uint16_t port)
 
 void FileServer::start(const std::filesystem::path &path) {
     m_acceptor.async_accept([path, this](auto ec, auto socket) {
+        BOOST_LOG_TRIVIAL(info) << "Accepted a new connection";
         acceptConnection(path, std::move(socket));
     });
     m_timeout.async_wait([this](auto ec) { handleTimeout(); });
@@ -27,6 +28,7 @@ void FileServer::start(const std::filesystem::path &path) {
 
 void FileServer::handleTimeout() {
     if (m_exit_cond.load()) {
+        BOOST_LOG_TRIVIAL(info) << "Shut down after timeout";
         m_service.stop();
     }
     m_timeout.async_wait([this](auto ec) { handleTimeout(); });
@@ -46,7 +48,7 @@ void FileServer::acceptConnection(const std::filesystem::path &path, ip::tcp::so
                 bytesSent += in.gcount();
                 asio::write(socket, asio::buffer(buffer.data(), in.gcount()));
             }
-            BOOST_LOG_TRIVIAL(info) << "Bytes sent: " << bytesSent;
+            BOOST_LOG_TRIVIAL(info) << "Sent bytes: " << bytesSent;
         } catch (std::exception &ex) {
             BOOST_LOG_TRIVIAL(error) << ex.what();
         }
@@ -59,6 +61,7 @@ void FileServer::acceptConnection(const std::filesystem::path &path, ip::tcp::so
 }
 
 void FileServer::stop() {
+    BOOST_LOG_TRIVIAL(info) << "Started shutting down";
     m_exit_cond.store(true);
     if (m_acceptor_thread.joinable()) {
         m_acceptor_thread.join();
