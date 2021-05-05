@@ -16,6 +16,10 @@ using namespace boost::asio;
 class FileServer {
 public:
     explicit FileServer(uint16_t port);
+    FileServer(const FileServer &) = delete;
+    FileServer &operator=(const FileServer &) = delete;
+    FileServer(FileServer &&) noexcept = default;
+    FileServer &operator=(FileServer &&) noexcept = default;
     ~FileServer();
     void start(const std::filesystem::path &path);
     void wait();
